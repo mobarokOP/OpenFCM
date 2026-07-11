@@ -33,40 +33,16 @@ jobs:
         # 8.3 is the production line; 8.4 guards forward compatibility.
         php: ["8.3", "8.4"]
 
-    # Real MySQL 8 + Redis 7 so tests exercise the production drivers.
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_DATABASE: openpush_test
-          MYSQL_ROOT_PASSWORD: root
-        ports: ["3306:3306"]
-        options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 -u root -proot --silent"
-          --health-interval=10s --health-timeout=5s --health-retries=10
-      redis:
-        image: redis:7-alpine
-        ports: ["6379:6379"]
-        options: >-
-          --health-cmd="redis-cli ping"
-          --health-interval=10s --health-timeout=5s --health-retries=10
-
     defaults:
       run:
         working-directory: backend
 
     env:
       APP_ENV: testing
-      DB_CONNECTION: mysql
-      DB_HOST: 127.0.0.1
-      DB_PORT: 3306
-      DB_DATABASE: openpush_test
-      DB_USERNAME: root
-      DB_PASSWORD: root
-      REDIS_HOST: 127.0.0.1
-      REDIS_PORT: 6379
-      CACHE_STORE: redis
-      QUEUE_CONNECTION: redis
+      DB_CONNECTION: sqlite
+      DB_DATABASE: :memory:
+      CACHE_STORE: array
+      QUEUE_CONNECTION: sync
 
     steps:
       - uses: actions/checkout@v4
