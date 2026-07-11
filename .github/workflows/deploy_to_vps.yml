@@ -32,8 +32,12 @@ jobs:
             if [ ! -d ".git" ]; then
               echo "Git repository not found. Initializing..."
               git init
-              git remote add origin https://github.com/mobarokOP/OpenFCM.git
+              git branch -m main
             fi
+            
+            # Ensure remote origin exists and is correct
+            git remote remove origin 2>/dev/null || true
+            git remote add origin https://github.com/mobarokOP/OpenFCM.git
             
             # Fetch the latest and reset to avoid merge conflicts
             git fetch origin main
