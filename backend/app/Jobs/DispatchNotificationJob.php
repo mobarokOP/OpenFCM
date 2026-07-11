@@ -3,12 +3,14 @@
 namespace App\Jobs;
 
 use App\Models\Notification;
+use App\Models\NotificationTarget;
 use App\Services\AudienceResolver;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Str;
 
 /**
  * Resolves the audience for a notification and fans devices out into
@@ -43,14 +45,14 @@ class DispatchNotificationJob implements ShouldQueue
 
                 // Track intended recipients.
                 $rows = array_map(fn ($id) => [
-                    'id' => (string) \Illuminate\Support\Str::uuid(),
+                    'id' => (string) Str::uuid(),
                     'notification_id' => $notification->id,
                     'device_id' => $id,
                     'status' => 'pending',
                     'created_at' => now(),
                     'updated_at' => now(),
                 ], $ids);
-                \App\Models\NotificationTarget::insert($rows);
+                NotificationTarget::insert($rows);
 
                 SendPushBatchJob::dispatch($notification->id, $ids)
                     ->onQueue(config('openpush.queue'));

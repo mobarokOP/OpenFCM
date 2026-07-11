@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Application;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -16,7 +17,7 @@ abstract class Controller
     }
 
     /** Standard collection envelope with pagination meta. */
-    protected function collection(\Illuminate\Contracts\Pagination\LengthAwarePaginator $p): JsonResponse
+    protected function collection(LengthAwarePaginator $p): JsonResponse
     {
         return response()->json([
             'data' => $p->items(),

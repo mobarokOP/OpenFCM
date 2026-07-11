@@ -33,7 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Uniform JSON error envelope for the whole API.
-        $exceptions->render(function (\Throwable $e, Request $request) {
+        $exceptions->render(function (Throwable $e, Request $request) {
             if (! $request->is('v1/*') && ! $request->expectsJson()) {
                 return null;
             }
