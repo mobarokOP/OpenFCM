@@ -1,0 +1,81 @@
+# =============================================================================
+# OpenPush — Local development overrides
+# -----------------------------------------------------------------------------
+# `docker compose` auto-merges this file on top of docker-compose.yml.
+# It swaps the production "baked image" model for bind mounts + hot reload so
+# code changes are reflected instantly without rebuilding.
+#
+#   docker compose up            # dev (this file is applied automatically)
+#   docker compose -f docker-compose.yml up   # prod-like (ignore this file)
+# =============================================================================
+
+services:
+  app:
+    build:
+      target: development # dev stage keeps xdebug-friendly, non-optimized autoloader
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      LOG_LEVEL: debug
+    volumes:
+      # Live source: edits on the host appear in the container immediately.
+      - ./backend:/var/www/html
+      # Keep vendor/ and storage inside the container to avoid clobbering the
+      # image's installed deps with an empty/host-specific directory.
+      - /var/www/html/vendor
+      - backend_storage:/var/www/html/storage
+
+  nginx:
+    ports:
+      - "8000:80" # matches API_CONTRACT dev base URL http://localhost:8000
+    volumes:
+      - ./infra/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./backend:/var/www/html:ro
+
+  mysql:
+    ports:
+      - "3306:3306" # expose for local DB clients (TablePlus, etc.)
+
+  redis:
+    ports:
+      - "6379:6379" # expose for local redis-cli / inspection
+
+  queue:
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+    volumes:
+      - ./backend:/var/www/html
+      - /var/www/html/vendor
+      - backend_storage:/var/www/html/storage
+      - ./infra/supervisor/supervisord.conf:/etc/supervisor/conf.d/supervisord.conf:ro
+
+  scheduler:
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+    volumes:
+      - ./backend:/var/www/html
+      - /var/www/html/vendor
+      - backend_storage:/var/www/html/storage
+
+  # In dev we run the Vite dev server (HMR) instead of the static nginx build.
+  dashboard:
+    build:
+      target: development
+    command: ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]
+    environment:
+      VITE_API_BASE_URL: http://localhost:8000/v1
+    volumes:
+      - ./dashboard:/app
+      - /app/node_modules # keep container's installed node_modules
+    ports:
+      - "5173:5173" # Vite dev server with hot module replacement
+    # The prod healthcheck probes the static nginx on :8080; in dev we run Vite
+    # on :5173 instead, so point the probe there.
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5173/ >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s

@@ -1,0 +1,16 @@
+# Scoped ignore for the backend image (used if built with this dir as context).
+# The primary build uses the repo root context + root .dockerignore; this file
+# documents backend-specific exclusions for standalone builds.
+vendor
+node_modules
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+bootstrap/cache/*
+.env
+.env.*
+!.env.example
+.phpunit.result.cache
+tests
+database/*.sqlite

@@ -1,0 +1,43 @@
+# Root build context ignore — keeps images small and builds fast.
+# Both the backend and dashboard images build from the repo root (context: .).
+
+# VCS / editor / OS
+.git
+.gitignore
+.github
+.DS_Store
+**/.DS_Store
+.idea
+.vscode
+
+# Env & secrets (never bake into images)
+.env
+**/.env
+**/.env.*
+!**/.env.example
+
+# Docs / infra that images don't need at build time
+openpush-docs
+*.md
+
+# Backend runtime cruft (deps are reinstalled inside the image)
+backend/vendor
+backend/node_modules
+backend/storage/logs/*
+backend/storage/framework/cache/*
+backend/storage/framework/sessions/*
+backend/storage/framework/views/*
+backend/bootstrap/cache/*
+backend/.phpunit.result.cache
+backend/database/*.sqlite
+
+# Dashboard build cruft
+dashboard/node_modules
+dashboard/dist
+dashboard/.vite
+
+# Android SDK is not part of any server image
+android-sdk
+
+# The bundled composer phar (installed inside the image instead)
+composer

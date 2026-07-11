@@ -1,0 +1,303 @@
+# =============================================================================
+# OpenPush — Production docker-compose stack
+# -----------------------------------------------------------------------------
+# Android push SaaS: Laravel 11 (PHP 8.3) API + React (Vite) dashboard,
+# Redis (cache + queue + FCM OAuth token cache) and MySQL 8.
+#
+# Everything here is driven by the root `.env` (see `.env.example`).
+# For local development, `docker-compose.override.yml` is auto-merged by
+# `docker compose` and adds bind mounts + hot reload.
+#
+# Services:
+#   app        php-fpm 8.3 — serves the Laravel API to nginx over FastCGI
+#   nginx      edge reverse proxy — TLS-terminated upstream, routes /v1 /api
+#              to php-fpm and everything else to the dashboard SPA
+#   mysql      MySQL 8 primary datastore
+#   redis      Redis 7 — cache store + queue backend + OAuth token cache
+#   queue      php artisan queue:work (the `push` queue) under supervisor
+#   scheduler  php artisan schedule:work (promotes due scheduled sends)
+#   dashboard  Vite React build served as static files by its own nginx
+#
+# Scale the workers horizontally with:
+#   docker compose up -d --scale queue=4
+# =============================================================================
+
+# The backend code image is built once and reused by app / queue / scheduler
+# so migrations, jobs and the scheduler all run identical bytecode.
+x-backend-image: &backend-image
+  build:
+    context: .
+    dockerfile: infra/docker/backend/Dockerfile
+    args:
+      # Match the production PHP line. Override per environment if needed.
+      PHP_VERSION: "8.3"
+  image: openpush/backend:${IMAGE_TAG:-latest}
+  restart: unless-stopped
+
+# Shared environment for every PHP container. Laravel reads these at runtime;
+# keeping them in one anchor guarantees app, queue and scheduler agree on the
+# same DB / Redis / queue configuration.
+x-backend-env: &backend-env
+  APP_NAME: ${APP_NAME:-OpenPush}
+  APP_ENV: ${APP_ENV:-production}
+  APP_KEY: ${APP_KEY}
+  APP_DEBUG: ${APP_DEBUG:-false}
+  APP_URL: ${APP_URL:-http://localhost}
+  APP_TIMEZONE: ${APP_TIMEZONE:-UTC}
+  LOG_CHANNEL: ${LOG_CHANNEL:-stack}
+  LOG_LEVEL: ${LOG_LEVEL:-info}
+
+  # --- Database (MySQL 8) ---
+  DB_CONNECTION: mysql
+  DB_HOST: mysql
+  DB_PORT: 3306
+  DB_DATABASE: ${DB_DATABASE:-openpush}
+  DB_USERNAME: ${DB_USERNAME:-openpush}
+  DB_PASSWORD: ${DB_PASSWORD}
+
+  # --- Redis (cache + queue + token cache) ---
+  REDIS_CLIENT: phpredis
+  REDIS_HOST: redis
+  REDIS_PORT: 6379
+  REDIS_PASSWORD: ${REDIS_PASSWORD}
+
+  # Laravel driver wiring — see API_CONTRACT lifecycle: jobs land on the
+  # `push` queue backed by Redis, and OAuth/FCM tokens are cached in Redis.
+  CACHE_STORE: redis
+  QUEUE_CONNECTION: redis
+  REDIS_QUEUE: ${REDIS_QUEUE:-push}
+  SESSION_DRIVER: redis
+  BROADCAST_CONNECTION: log
+  FILESYSTEM_DISK: local
+
+  # --- Auth / crypto ---
+  JWT_SECRET: ${JWT_SECRET}
+  JWT_TTL: ${JWT_TTL:-1440}
+
+  # --- FCM (HTTP v1) ---
+  # Per-application service accounts are stored (encrypted) in MySQL; this is
+  # only the global default project used for tooling / health checks.
+  FCM_DEFAULT_PROJECT_ID: ${FCM_DEFAULT_PROJECT_ID:-}
+
+  # --- Mail (transactional: invites, password resets, alerts) ---
+  MAIL_MAILER: ${MAIL_MAILER:-smtp}
+  MAIL_HOST: ${MAIL_HOST:-mailpit}
+  MAIL_PORT: ${MAIL_PORT:-1025}
+  MAIL_USERNAME: ${MAIL_USERNAME:-}
+  MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+  MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-hello@openpush.dev}
+  MAIL_FROM_NAME: ${APP_NAME:-OpenPush}
+
+services:
+  # ---------------------------------------------------------------------------
+  # app — Laravel API (php-fpm). Not published to the host; nginx talks to it
+  # over the internal network on port 9000.
+  # ---------------------------------------------------------------------------
+  app:
+    <<: *backend-image
+    container_name: openpush_app
+    environment:
+      <<: *backend-env
+      CONTAINER_ROLE: app # entrypoint runs migrations + caches config on this role only
+    volumes:
+      # Baked code lives in the image; only mutable runtime state is a volume so
+      # nginx (which shares backend_code) can read the same public/ + storage.
+      - backend_code:/var/www/html
+      - backend_storage:/var/www/html/storage
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      # php-fpm has no HTTP endpoint; check the pool is accepting connections.
+      test: ["CMD-SHELL", "php-fpm-healthcheck || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    networks: [backend]
+
+  # ---------------------------------------------------------------------------
+  # nginx — edge reverse proxy. This is the only service that should sit behind
+  # your TLS terminator (LB / Cloudflare / Traefik). Publishes 80/443.
+  # ---------------------------------------------------------------------------
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: openpush_nginx
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+      dashboard:
+        condition: service_started
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      # Enable once you drop certs into infra/nginx/certs and a TLS server block.
+      # - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - ./infra/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      # nginx serves Laravel's public/ directly and passes PHP to app:9000,
+      # so it needs the same code the app container runs.
+      - backend_code:/var/www/html:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost/healthz || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks: [backend]
+
+  # ---------------------------------------------------------------------------
+  # mysql — primary datastore (see DB tables in API_CONTRACT).
+  # ---------------------------------------------------------------------------
+  mysql:
+    image: mysql:8.0
+    container_name: openpush_mysql
+    restart: unless-stopped
+    command:
+      # utf8mb4 everywhere; disable the (deprecated) x-protocol we don't use.
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --mysqlx=OFF
+      - --default-authentication-plugin=caching_sha2_password
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-openpush}
+      MYSQL_USER: ${DB_USERNAME:-openpush}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks: [backend]
+
+  # ---------------------------------------------------------------------------
+  # redis — cache + queue + FCM OAuth token cache. Password is enforced via the
+  # command flag so the same redis.conf works in every environment.
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: openpush_redis
+    restart: unless-stopped
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf", "--requirepass", "${REDIS_PASSWORD}"]
+    volumes:
+      - ./infra/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    networks: [backend]
+
+  # ---------------------------------------------------------------------------
+  # queue — the push delivery workers. Supervisor runs N `queue:work push`
+  # processes (see infra/supervisor/supervisord.conf). Scale horizontally with
+  # `--scale queue=N`; supervisor multiplies that by WORKER count per container.
+  # ---------------------------------------------------------------------------
+  queue:
+    <<: *backend-image
+    # No container_name — must stay unset so `--scale queue=N` can create
+    # queue_1, queue_2, ... replicas.
+    command: ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+    environment:
+      <<: *backend-env
+      CONTAINER_ROLE: queue
+      # Number of `push` workers per container. Total concurrency =
+      # QUEUE_WORKERS * (number of queue replicas from --scale queue=N).
+      QUEUE_WORKERS: ${QUEUE_WORKERS:-4}
+    volumes:
+      - backend_code:/var/www/html
+      - backend_storage:/var/www/html/storage
+      - ./infra/supervisor/supervisord.conf:/etc/supervisor/conf.d/supervisord.conf:ro
+    depends_on:
+      app:
+        condition: service_healthy # ensures migrations/config caching already ran
+      redis:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f 'queue:work' > /dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks: [backend]
+
+  # ---------------------------------------------------------------------------
+  # scheduler — a single long-lived `schedule:work` process. Never scale this
+  # above 1 (duplicate scheduled dispatches). It promotes due `schedules` rows
+  # to `DispatchNotificationJob` every minute (API_CONTRACT lifecycle step 5).
+  # ---------------------------------------------------------------------------
+  scheduler:
+    <<: *backend-image
+    container_name: openpush_scheduler
+    command: ["php", "artisan", "schedule:work", "--no-interaction"]
+    environment:
+      <<: *backend-env
+      CONTAINER_ROLE: scheduler
+    volumes:
+      - backend_code:/var/www/html
+      - backend_storage:/var/www/html/storage
+    depends_on:
+      app:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f 'schedule:work' > /dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks: [backend]
+
+  # ---------------------------------------------------------------------------
+  # dashboard — Vite React SPA, built at image time and served as static files
+  # by a tiny nginx. The edge nginx proxies non-API traffic here.
+  # ---------------------------------------------------------------------------
+  dashboard:
+    build:
+      context: .
+      dockerfile: infra/docker/dashboard/Dockerfile
+      args:
+        # The SPA calls the API through the edge proxy, so a relative base works
+        # in every environment. Override for a split-domain deployment.
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/v1}
+    image: openpush/dashboard:${IMAGE_TAG:-latest}
+    container_name: openpush_dashboard
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/ >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks: [backend]
+
+# -----------------------------------------------------------------------------
+# Named volumes — data that must survive container recreation.
+# -----------------------------------------------------------------------------
+volumes:
+  mysql_data:      # MySQL datadir
+  redis_data:      # Redis AOF/RDB persistence
+  backend_code:    # Laravel code shared between app/queue/scheduler/nginx
+  backend_storage: # storage/ (logs, framework cache, uploaded FCM keys) shared
+
+# -----------------------------------------------------------------------------
+# Single private bridge network. Only nginx publishes ports to the host.
+# -----------------------------------------------------------------------------
+networks:
+  backend:
+    driver: bridge

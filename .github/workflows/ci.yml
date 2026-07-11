@@ -1,0 +1,158 @@
+# =============================================================================
+# OpenPush — Continuous Integration
+# -----------------------------------------------------------------------------
+# Two independent jobs:
+#   backend   — PHP 8.3, composer install, Pint (lint), PHPStan (if present),
+#               php artisan test against MySQL 8 + Redis service containers.
+#   dashboard — Node 20, npm ci, lint, build.
+# Runs on pushes/PRs to main. Path filters keep each job to its own tree.
+# =============================================================================
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+# Cancel superseded runs on the same ref to save CI minutes.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Backend (Laravel 11 / PHP 8.3)
+  # ---------------------------------------------------------------------------
+  backend:
+    name: Backend (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # 8.3 is the production line; 8.4 guards forward compatibility.
+        php: ["8.3", "8.4"]
+
+    # Real MySQL 8 + Redis 7 so tests exercise the production drivers.
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: openpush_test
+          MYSQL_ROOT_PASSWORD: root
+        ports: ["3306:3306"]
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -u root -proot --silent"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+
+    defaults:
+      run:
+        working-directory: backend
+
+    env:
+      APP_ENV: testing
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: openpush_test
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      REDIS_HOST: 127.0.0.1
+      REDIS_PORT: 6379
+      CACHE_STORE: redis
+      QUEUE_CONNECTION: redis
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: pdo_mysql, redis, pcntl, bcmath, intl, zip, gd, mbstring
+          coverage: none
+          tools: composer:v2
+
+      # Cache composer downloads keyed on the lockfile.
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache/files
+          key: composer-${{ matrix.php }}-${{ hashFiles('backend/composer.lock') }}
+          restore-keys: composer-${{ matrix.php }}-
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Prepare environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Lint (Laravel Pint)
+        run: vendor/bin/pint --test
+
+      # PHPStan/Larastan is optional — only run if the project ships a config.
+      - name: Static analysis (PHPStan)
+        run: |
+          if [ -f phpstan.neon ] || [ -f phpstan.neon.dist ]; then
+            vendor/bin/phpstan analyse --no-progress
+          else
+            echo "No phpstan config found — skipping static analysis."
+          fi
+
+      - name: Run migrations
+        run: php artisan migrate --force
+
+      - name: Run tests
+        run: php artisan test
+
+  # ---------------------------------------------------------------------------
+  # Dashboard (Vite React)
+  # ---------------------------------------------------------------------------
+  dashboard:
+    name: Dashboard (Node 20)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dashboard
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: dashboard/package-lock.json
+
+      # Guard: the dashboard tree may still be a scaffold in early phases.
+      - name: Check for package.json
+        id: pkg
+        run: |
+          if [ -f package.json ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "No dashboard/package.json yet — skipping dashboard build."
+          fi
+
+      - name: Install dependencies
+        if: steps.pkg.outputs.exists == 'true'
+        run: npm ci
+
+      - name: Lint
+        if: steps.pkg.outputs.exists == 'true'
+        # `--if-present` no-ops when the project defines no lint script yet.
+        run: npm run lint --if-present
+
+      - name: Build
+        if: steps.pkg.outputs.exists == 'true'
+        run: npm run build

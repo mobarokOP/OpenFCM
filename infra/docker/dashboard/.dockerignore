@@ -1,0 +1,9 @@
+# Scoped ignore for the dashboard image (standalone-build reference).
+# The primary build uses the repo root context + root .dockerignore.
+node_modules
+dist
+.vite
+.env
+.env.*
+!.env.example
+coverage
