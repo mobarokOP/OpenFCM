@@ -76,6 +76,7 @@ jobs:
             echo "Building Frontend..."
             cd dashboard
             npm install
+            echo "VITE_API_BASE=https://admin.beta.kathgolap.online/v1" > .env
             npm run build
             cd ..
             
