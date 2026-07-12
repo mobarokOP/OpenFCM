@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Bell, Send, Smartphone, BarChart3 } from 'lucide-react'
+import { Send, Smartphone, BarChart3 } from 'lucide-react'
 import { ThemeToggle } from '@/components/layout/ThemeToggle'
 
 const features = [
@@ -13,9 +13,7 @@ export function AuthShell({ title, subtitle, children }: { title: string; subtit
     <div className="flex min-h-screen">
       <div className="hidden w-1/2 flex-col justify-between bg-primary p-12 text-primary-foreground lg:flex">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15">
-            <Bell className="h-5 w-5" />
-          </div>
+          <img src="/brand/logo-mark.png" alt="OneFCM" className="h-10 w-10 rounded-xl" />
           <span className="text-lg font-semibold">OneFCM</span>
         </div>
         <div>
@@ -47,9 +45,7 @@ export function AuthShell({ title, subtitle, children }: { title: string; subtit
           <div className="w-full max-w-sm">
             <div className="mb-8 lg:hidden">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-                  <Bell className="h-5 w-5" />
-                </div>
+                <img src="/brand/logo-mark.png" alt="OneFCM" className="h-12 w-12 rounded-xl" />
                 <span className="text-lg font-semibold">OneFCM</span>
               </div>
             </div>

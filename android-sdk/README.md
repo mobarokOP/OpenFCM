@@ -1,8 +1,12 @@
-# OpenFCM Android SDK
+<p align="center">
+  <img src="../logos/primary_main.png" alt="OneFCM" width="96">
+</p>
 
-A lightweight, Kotlin-first client library for the **OpenFCM** self-hostable
+# OneFCM Android SDK
+
+A lightweight, Kotlin-first client library for the **OneFCM** self-hostable
 push notification platform. Comparable in shape to OneSignal's Android SDK, but
-talking to *your* backend over the [OpenFCM v1 API](../API_CONTRACT.md) and
+talking to *your* backend over the [OneFCM v1 API](../API_CONTRACT.md) and
 delivering via **Firebase Cloud Messaging (HTTP v1)**.
 
 - One-line initialization

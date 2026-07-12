@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🔔 OpenFCM
+<img src="logos/primary_horizontal.png" alt="OneFCM" width="380">
 
 ### Open-source Android Push Notifications — self-hostable, OneSignal-style, powered by FCM
 
@@ -19,9 +19,9 @@ Send targeted push notifications to your Android apps with a Kotlin SDK, a REST 
 
 ---
 
-## ✨ What is OpenFCM?
+## ✨ What is OneFCM?
 
-OpenFCM is a complete, multi-tenant push-notification platform for **Android** apps. Drop the SDK into your app, and send notifications from a beautiful dashboard or via a REST API — targeted by user, tag, segment, or topic. Delivery runs through **Firebase Cloud Messaging (HTTP v1)** on a queue-based engine with automatic retries and full delivery analytics.
+OneFCM is a complete, multi-tenant push-notification platform for **Android** apps. Drop the SDK into your app, and send notifications from a beautiful dashboard or via a REST API — targeted by user, tag, segment, or topic. Delivery runs through **Firebase Cloud Messaging (HTTP v1)** on a queue-based engine with automatic retries and full delivery analytics.
 
 | | |
 |---|---|
@@ -40,7 +40,7 @@ Get push notifications working in your Android app in **3 steps** — no `google
 
 ### Prerequisites
 - Android Studio, app with **minSdk 24+**
-- **Create the app in the dashboard** — [OpenFCM dashboard](https://beta.kathgolap.online) → **Applications** → **New application**. Set the app's **package name** and copy its **App ID**.
+- **Create the app in the dashboard** — [OneFCM dashboard](https://beta.kathgolap.online) → **Applications** → **New application**. Set the app's **package name** and copy its **App ID**.
 - **Upload the Firebase service account JSON** — in the Firebase Console: **Project settings → Service accounts → Generate new private key**, then upload that JSON in the app's settings in the dashboard. The backend derives the Firebase client config automatically (and auto-registers an Android app in your Firebase project using the package name if none exists).
 
 > ✨ The SDK fetches your app's Firebase config from the server (`GET /v1/fcm-config`), initializes Firebase, registers the device, and **auto-prompts for notification permission**. Each app sends through its **own** Firebase project — notifications never leak between apps.
@@ -76,7 +76,7 @@ dependencies {
 
 ### Step 2 · Initialize the SDK
 
-Initialize once in your `Application` class. Point `baseUrl` at the OpenFCM backend.
+Initialize once in your `Application` class. Point `baseUrl` at the OneFCM backend.
 
 ```kotlin
 // MyApp.kt
@@ -196,7 +196,7 @@ A modern React admin console — compose notifications with a live preview, buil
 
 ## 🏗️ Self-hosting the backend
 
-OpenFCM is fully self-hostable (Laravel · MySQL · Redis · FCM).
+OneFCM is fully self-hostable (Laravel · MySQL · Redis · FCM).
 
 ```bash
 git clone https://github.com/mobarokOP/OpenFCM.git

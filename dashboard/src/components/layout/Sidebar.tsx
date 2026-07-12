@@ -11,7 +11,6 @@ import {
   ScrollText,
   KeyRound,
   Settings,
-  Bell,
   X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -79,9 +78,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
       >
         <div className="flex h-16 items-center justify-between gap-2 border-b border-border px-5">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-soft">
-              <Bell className="h-5 w-5" />
-            </div>
+            <img src="/brand/logo-64.png" alt="OneFCM" className="h-9 w-9 rounded-xl shadow-soft" />
             <div className="leading-tight">
               <p className="text-sm font-semibold tracking-tight">OneFCM</p>
               <p className="text-xs text-muted-foreground">Push Console</p>
