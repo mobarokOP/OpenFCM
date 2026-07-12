@@ -4,10 +4,10 @@
 # JitPack then serves.
 #
 # Consumers depend on it as:
-#   implementation("com.github.mobarokOP.OpenFCM:openpush:<tag>")
+#   implementation("com.github.mobarokOP.OpenFCM:openfcm:<tag>")
 #
 # $VERSION is the git tag/commit JitPack is building.
 jdk:
   - openjdk17
 install:
-  - "cd android-sdk && chmod +x gradlew && ./gradlew :openpush:publishToMavenLocal -Pversion=$VERSION --no-daemon"
+  - "cd android-sdk && chmod +x gradlew && ./gradlew :openfcm:publishToMavenLocal -Pversion=$VERSION --no-daemon"
