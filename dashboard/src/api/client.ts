@@ -38,7 +38,16 @@ export interface ApiErrorShape {
 export function getErrorMessage(err: unknown, fallback = 'Something went wrong'): string {
   if (axios.isAxiosError(err)) {
     const data = err.response?.data as ApiErrorShape | undefined
-    if (data?.error?.message) return data.error.message
+    if (data?.error) {
+      // Surface the first field-level validation detail — far more actionable
+      // than the generic "The given data was invalid."
+      const details = data.error.details
+      if (details) {
+        const first = Object.values(details).flat()[0]
+        if (first) return first
+      }
+      if (data.error.message) return data.error.message
+    }
     if (err.message) return err.message
   }
   if (err instanceof Error) return err.message

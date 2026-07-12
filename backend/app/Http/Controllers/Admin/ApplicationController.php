@@ -32,7 +32,7 @@ class ApplicationController extends Controller
             'package_name' => ['nullable', 'string', 'max:190'],
             'fcm_project_id' => ['nullable', 'string', 'max:190'],
             'fcm_service_account' => ['nullable'],
-            'rate_limit' => ['nullable', 'integer', 'min:1'],
+            'rate_limit' => ['nullable', 'integer', 'min:0'],
         ]);
 
         $serviceAccount = $this->normalizedServiceAccount($data['fcm_service_account'] ?? null);
@@ -72,7 +72,7 @@ class ApplicationController extends Controller
             'fcm_project_id' => ['nullable', 'string', 'max:190'],
             'fcm_service_account' => ['nullable'],
             'status' => ['sometimes', 'in:active,paused'],
-            'rate_limit' => ['sometimes', 'integer', 'min:1'],
+            'rate_limit' => ['sometimes', 'integer', 'min:0'],
         ]);
 
         $serviceAccount = null;
