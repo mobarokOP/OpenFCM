@@ -1,0 +1,11 @@
+.gradle/
+build/
+*/build/
+local.properties
+.idea/
+.DS_Store
+*.iml
+captures/
+
+# Never commit the real Firebase config
+app/google-services.json

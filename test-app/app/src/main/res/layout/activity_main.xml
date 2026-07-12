@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="#0F1115">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🔔 OpenFCM Test"
+            android:textColor="#FFFFFF"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:paddingTop="16dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Install, grant permission, then send a notification from the dashboard."
+            android:textColor="#9AA0A6"
+            android:textSize="14sp"
+            android:paddingTop="4dp"
+            android:paddingBottom="20dp" />
+
+        <!-- Status card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="#1A1D23"
+            android:padding="18dp">
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Device ID" android:textColor="#7C4DFF" android:textSize="12sp" android:textStyle="bold" />
+            <TextView android:id="@+id/txtDeviceId" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="registering…" android:textColor="#FFFFFF" android:textSize="14sp"
+                android:fontFamily="monospace" android:paddingBottom="14dp" />
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="External ID" android:textColor="#7C4DFF" android:textSize="12sp" android:textStyle="bold" />
+            <TextView android:id="@+id/txtExternalId" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="—" android:textColor="#FFFFFF" android:textSize="14sp" android:paddingBottom="14dp" />
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Notifications" android:textColor="#7C4DFF" android:textSize="12sp" android:textStyle="bold" />
+            <TextView android:id="@+id/txtPermission" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="—" android:textColor="#FFFFFF" android:textSize="14sp" />
+        </LinearLayout>
+
+        <Button android:id="@+id/btnPermission" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Enable notifications" android:layout_marginTop="20dp" />
+        <Button android:id="@+id/btnLogin" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Login as test_user" android:layout_marginTop="8dp" />
+        <Button android:id="@+id/btnTag" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Add tag  premium=true" android:layout_marginTop="8dp" />
+        <Button android:id="@+id/btnTopic" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Subscribe topic  'all'" android:layout_marginTop="8dp" />
+        <Button android:id="@+id/btnCopy" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Copy Device ID" android:layout_marginTop="8dp" />
+        <Button android:id="@+id/btnRefresh" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Refresh" android:layout_marginTop="8dp" />
+
+    </LinearLayout>
+</ScrollView>

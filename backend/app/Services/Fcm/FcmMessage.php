@@ -25,11 +25,20 @@ class FcmMessage
             ->map(fn ($v) => is_string($v) ? $v : json_encode($v))
             ->all();
 
-        // Custom data travels alongside tracking metadata.
-        $data['openfcm_notification_id'] = (string) $n->id;
-        if ($n->deep_link) {
-            $data['deep_link'] = $n->deep_link;
-        }
+        // OpenFCM data keys (op_*) the SDK reads to render + track. Kept in the
+        // data payload so the SDK controls rendering, deep links, and tracking.
+        $data += array_filter([
+            'op_notification_id' => (string) $n->id,
+            'op_title' => $n->title,
+            'op_body' => $n->body,
+            'op_image_url' => $n->image_url,
+            'op_large_icon' => $n->large_icon,
+            'op_small_icon' => $n->small_icon,
+            'op_channel_id' => $n->channel_id,
+            'op_deep_link' => $n->deep_link,
+            'op_priority' => $n->priority,
+            'op_collapse_key' => $n->collapse_key,
+        ], fn ($v) => $v !== null && $v !== '');
 
         $androidNotification = array_filter([
             'title' => $n->title,
