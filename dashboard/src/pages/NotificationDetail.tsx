@@ -28,9 +28,9 @@ export default function NotificationDetail() {
   const [statusFilter, setStatusFilter] = useState('')
 
   const notif = useQuery({
-    queryKey: ['notification', id],
-    queryFn: () => notificationsApi.get(id),
-    enabled: !!id,
+    queryKey: ['notification', appId, id],
+    queryFn: () => notificationsApi.get(appId!, id),
+    enabled: !!appId && !!id,
   })
 
   const logs = useQuery({
@@ -40,7 +40,7 @@ export default function NotificationDetail() {
   })
 
   const cancel = useMutation({
-    mutationFn: () => notificationsApi.cancel(id),
+    mutationFn: () => notificationsApi.cancel(appId!, id),
     onSuccess: () => {
       toast.success('Notification canceled')
       qc.invalidateQueries({ queryKey: ['notification', id] })

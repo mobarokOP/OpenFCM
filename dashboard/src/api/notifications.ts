@@ -9,15 +9,16 @@ export const notificationsApi = {
       meta: data.meta ?? { page: 1, per_page: 20, total: (data.data ?? []).length },
     }
   },
-  async get(id: string): Promise<NotificationItem> {
-    const { data } = await api.get(`/notifications/${id}`)
+  async get(appId: string, id: string): Promise<NotificationItem> {
+    // Admin-scoped detail — returns full content (image, deep link, custom data).
+    const { data } = await api.get(`/apps/${appId}/notifications/${id}`)
     return unwrap<NotificationItem>(data)
   },
   async create(payload: CreateNotificationPayload): Promise<NotificationItem> {
     const { data } = await api.post('/notifications', payload)
     return unwrap<NotificationItem>(data)
   },
-  async cancel(id: string): Promise<void> {
-    await api.post(`/notifications/${id}/cancel`)
+  async cancel(appId: string, id: string): Promise<void> {
+    await api.post(`/apps/${appId}/notifications/${id}/cancel`)
   },
 }

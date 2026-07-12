@@ -103,6 +103,14 @@ class NotificationController extends Controller
         return $this->item($this->present($n));
     }
 
+    /** Admin detail scoped to an app (dashboard). */
+    public function adminShow(Request $request, string $appId, string $id): JsonResponse
+    {
+        $app = $this->appForAdmin($request, $appId);
+
+        return $this->item($this->present($app->notifications()->findOrFail($id)));
+    }
+
     /** Admin list scoped to an app. */
     public function index(Request $request, string $appId): JsonResponse
     {

@@ -64,30 +64,42 @@ class NotificationTrampolineActivity : Activity() {
     }
 
     private fun launchTarget(payload: NotificationPayload) {
-        val launch: Intent? = when {
-            !payload.deepLink.isNullOrBlank() -> Intent(Intent.ACTION_VIEW, Uri.parse(payload.deepLink)).apply {
-                setPackage(packageName)
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                putExtras(payload.toBundle())
-            }
-            else -> packageManager.getLaunchIntentForPackage(packageName)?.apply {
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                putExtras(payload.toBundle())
+        val deepLink = payload.deepLink
+
+        if (!deepLink.isNullOrBlank()) {
+            val uri = runCatching { Uri.parse(deepLink) }.getOrNull()
+            if (uri != null) {
+                // 1. Prefer an in-app activity that handles this link (app links /
+                //    custom schemes declared by the host app).
+                val inApp = Intent(Intent.ACTION_VIEW, uri).apply {
+                    setPackage(packageName)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    putExtras(payload.toBundle())
+                }
+                if (inApp.resolveActivity(packageManager) != null &&
+                    runCatching { startActivity(inApp) }.isSuccess
+                ) {
+                    return
+                }
+
+                // 2. Otherwise hand the link to the system (browser, maps, …) —
+                //    e.g. a plain https:// URL with no in-app intent-filter.
+                val external = Intent(Intent.ACTION_VIEW, uri).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                if (runCatching { startActivity(external) }.isSuccess) {
+                    return
+                }
+                Logger.w("No activity could handle deep link '$deepLink'; opening launcher.")
             }
         }
 
-        if (launch == null) {
-            Logger.w("No target activity resolved for deep link '${payload.deepLink}'.")
-            return
+        // 3. Fall back to the app's launcher activity.
+        packageManager.getLaunchIntentForPackage(packageName)?.let { fallback ->
+            fallback.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            fallback.putExtras(payload.toBundle())
+            runCatching { startActivity(fallback) }
         }
-        runCatching { startActivity(launch) }
-            .onFailure {
-                Logger.w("Deep link failed, falling back to launcher: ${it.message}")
-                packageManager.getLaunchIntentForPackage(packageName)?.let { fallback ->
-                    fallback.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    startActivity(fallback)
-                }
-            }
     }
 
     companion object {
