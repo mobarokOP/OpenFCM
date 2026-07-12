@@ -60,16 +60,16 @@ dependencyResolutionManagement {
 
 // app/build.gradle.kts
 dependencies {
-    implementation("com.github.mobarokOP:OpenFCM:3.0.1")
+    implementation("com.github.mobarokOP:OneFCM:1.0.0")
     // Firebase Messaging is exposed transitively (api) by the SDK.
 }
 ```
 
 > Replace `1.0.0` with any released git tag, a branch (`main-SNAPSHOT`), or a commit hash.
 > First resolution triggers a JitPack build — check status at
-> `https://jitpack.io/#mobarokOP/OpenFCM`.
+> `https://jitpack.io/#mobarokOP/OneFCM`.
 
-**Publishing a new version:** push a git tag to `mobarokOP/OpenFCM` (e.g. `git tag v1.0.0 && git push origin v1.0.0`) or create a GitHub Release. JitPack builds it on first request using the repo-root [`jitpack.yml`](../jitpack.yml).
+**Publishing a new version:** push a git tag to `mobarokOP/OneFCM` (e.g. `git tag v1.0.0 && git push origin v1.0.0`) or create a GitHub Release. JitPack builds it on first request using the repo-root [`jitpack.yml`](../jitpack.yml).
 
 Or build the AAR locally:
 

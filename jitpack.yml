@@ -4,7 +4,7 @@
 # JitPack then serves.
 #
 # Consumers depend on it as:
-#   implementation("com.github.mobarokOP.OpenFCM:openfcm:<tag>")
+#   implementation("com.github.mobarokOP.OneFCM:openfcm:<tag>")
 #
 # $VERSION is the git tag/commit JitPack is building.
 jdk:

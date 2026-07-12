@@ -6,14 +6,14 @@
 
 Send targeted push notifications to your Android apps with a Kotlin SDK, a REST API, and a modern admin dashboard.
 
-[![JitPack](https://jitpack.io/v/mobarokOP/OpenFCM.svg)](https://jitpack.io/#mobarokOP/OpenFCM)
+[![JitPack](https://jitpack.io/v/mobarokOP/OneFCM.svg)](https://jitpack.io/#mobarokOP/OneFCM)
 [![Platform](https://img.shields.io/badge/platform-Android%2024%2B-3DDC84?logo=android&logoColor=white)](#-android-sdk-integration)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0-7F52FF?logo=kotlin&logoColor=white)](#-android-sdk-integration)
 [![Backend](https://img.shields.io/badge/Laravel-12-FF2D20?logo=laravel&logoColor=white)](#-self-hosting-the-backend)
 [![FCM](https://img.shields.io/badge/Firebase-FCM%20HTTP%20v1-FFCA28?logo=firebase&logoColor=black)](#step-2--connect-firebase)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](#-license)
 
-**[Dashboard](https://beta.kathgolap.online)** · **[Quick Start](#-android-sdk-integration)** · **[REST API](#-send-from-your-server-rest-api)** · **[Self-host](#-self-hosting-the-backend)**
+**[Dashboard](https://dashboard.onefcm.com)** · **[Quick Start](#-android-sdk-integration)** · **[REST API](#-send-from-your-server-rest-api)** · **[Self-host](#-self-hosting-the-backend)**
 
 </div>
 
@@ -40,7 +40,7 @@ Get push notifications working in your Android app in **3 steps** — no `google
 
 ### Prerequisites
 - Android Studio, app with **minSdk 24+**
-- **Create the app in the dashboard** — [OneFCM dashboard](https://beta.kathgolap.online) → **Applications** → **New application**. Set the app's **package name** and copy its **App ID**.
+- **Create the app in the dashboard** — [OneFCM dashboard](https://dashboard.onefcm.com) → **Applications** → **New application**. Set the app's **package name** and copy its **App ID**.
 - **Upload the Firebase service account JSON** — in the Firebase Console: **Project settings → Service accounts → Generate new private key**, then upload that JSON in the app's settings in the dashboard. The backend derives the Firebase client config automatically (and auto-registers an Android app in your Firebase project using the package name if none exists).
 
 > ✨ The SDK fetches your app's Firebase config from the server (`GET /v1/fcm-config`), initializes Firebase, registers the device, and **auto-prompts for notification permission**. Each app sends through its **own** Firebase project — notifications never leak between apps.
@@ -65,12 +65,12 @@ dependencyResolutionManagement {
 ```kotlin
 // app/build.gradle.kts
 dependencies {
-    implementation("com.github.mobarokOP:OpenFCM:3.0.1")
+    implementation("com.github.mobarokOP:OneFCM:1.0.0")
     // Firebase Messaging is pulled in transitively — no extra FCM dependency needed.
 }
 ```
 
-> 💡 Always check the latest version badge above, or browse builds at [jitpack.io/#mobarokOP/OpenFCM](https://jitpack.io/#mobarokOP/OpenFCM).
+> 💡 Always check the latest version badge above, or browse builds at [jitpack.io/#mobarokOP/OneFCM](https://jitpack.io/#mobarokOP/OneFCM).
 
 ---
 
@@ -88,7 +88,7 @@ class MyApp : Application() {
         super.onCreate()
 
         OpenFCM.init(this, appId = "YOUR_APP_ID") {
-            baseUrl = "https://admin.beta.kathgolap.online" // your OpenFCM server
+            baseUrl = "https://admin.onefcm.com" // your OpenFCM server
             defaultChannelId = "general"
             defaultChannelName = "General"
             enableDebugLogging = BuildConfig.DEBUG
@@ -165,7 +165,7 @@ Full SDK docs: **[android-sdk/README.md](android-sdk/README.md)**
 Create an API key in the dashboard (**App → API Keys**), then:
 
 ```bash
-curl -X POST https://admin.beta.kathgolap.online/v1/notifications \
+curl -X POST https://admin.onefcm.com/v1/notifications \
   -H "Authorization: Bearer op_live_YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -190,7 +190,7 @@ Full endpoint reference: **[API_CONTRACT.md](API_CONTRACT.md)**
 
 A modern React admin console — compose notifications with a live preview, build segments, inspect delivery logs, and watch analytics.
 
-🔗 **[beta.kathgolap.online](https://beta.kathgolap.online)**
+🔗 **[dashboard.onefcm.com](https://dashboard.onefcm.com)**
 
 ---
 
@@ -199,7 +199,7 @@ A modern React admin console — compose notifications with a live preview, buil
 OneFCM is fully self-hostable (Laravel · MySQL · Redis · FCM).
 
 ```bash
-git clone https://github.com/mobarokOP/OpenFCM.git
+git clone https://github.com/mobarokOP/OneFCM.git
 cd OpenFCM
 
 # Full stack with Docker (app · nginx · mysql · redis · queue · scheduler · dashboard)

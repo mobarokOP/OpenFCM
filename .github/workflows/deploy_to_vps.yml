@@ -37,7 +37,7 @@ jobs:
 
             # Ensure remote origin exists and is correct
             git remote remove origin 2>/dev/null || true
-            git remote add origin https://github.com/mobarokOP/OpenFCM.git
+            git remote add origin https://github.com/mobarokOP/OneFCM.git
 
             # Fetch the latest and reset to avoid merge conflicts
             git fetch origin main

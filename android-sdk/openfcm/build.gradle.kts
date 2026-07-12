@@ -5,13 +5,13 @@ plugins {
     `maven-publish`
 }
 
-// Published coordinates for JitPack: com.github.mobarokOP.OpenFCM:openfcm:<tag>
+// Published coordinates for JitPack: com.github.mobarokOP.OneFCM:openfcm:<tag>
 // Version is injected by JitPack via -Pversion / VERSION env; falls back for local builds.
-group = "com.github.mobarokOP.OpenFCM"
+group = "com.github.mobarokOP.OneFCM"
 version = (findProperty("version") as? String)
     ?.takeUnless { it == "unspecified" }
     ?: System.getenv("VERSION")
-    ?: "3.0.1"
+    ?: "1.0.0"
 
 android {
     namespace = "com.openfcm.sdk"
@@ -23,7 +23,7 @@ android {
         // The default backend base URL. Consumers can override at runtime via
         // OpenFCM.init(...) or by supplying a manifest meta-data entry.
         buildConfigField("String", "OPENFCM_DEFAULT_BASE_URL", "\"http://localhost:8000\"")
-        buildConfigField("String", "OPENFCM_SDK_VERSION", "\"3.0.1\"")
+        buildConfigField("String", "OPENFCM_SDK_VERSION", "\"1.0.0\"")
 
         consumerProguardFiles("consumer-rules.pro")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -93,7 +93,7 @@ dependencies {
 publishing {
     publications {
         register<MavenPublication>("release") {
-            groupId = "com.github.mobarokOP.OpenFCM"
+            groupId = "com.github.mobarokOP.OneFCM"
             artifactId = "openfcm"
             version = project.version.toString()
 
@@ -104,7 +104,7 @@ publishing {
             pom {
                 name.set("OpenFCM Android SDK")
                 description.set("Android client SDK for the OpenFCM notification platform (FCM).")
-                url.set("https://github.com/mobarokOP/OpenFCM")
+                url.set("https://github.com/mobarokOP/OneFCM")
                 licenses {
                     license {
                         name.set("MIT License")

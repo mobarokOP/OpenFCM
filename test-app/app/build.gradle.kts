@@ -36,7 +36,7 @@ android {
 
 dependencies {
     // OpenFCM SDK (pulls in Firebase Messaging transitively; no google-services.json needed)
-    implementation("com.github.mobarokOP:OpenFCM:3.0.1")
+    implementation("com.github.mobarokOP:OneFCM:1.0.0")
 
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
