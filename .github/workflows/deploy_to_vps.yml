@@ -7,7 +7,7 @@ on:
 
 jobs:
   deploy:
-    name: Deploy to Production
+    name: Deploy to Production (onefcm.com)
     runs-on: ubuntu-latest
 
     steps:
@@ -23,52 +23,34 @@ jobs:
             set -e
 
             echo "Navigating to project directory..."
-            cd /www/wwwroot/BETA_KATHGOLAP
-            
+            cd /www/wwwroot/ONE_FCM
+
             echo "Configuring git safe directory to prevent ownership errors..."
-            git config --global --add safe.directory /www/wwwroot/BETA_KATHGOLAP
-            
+            git config --global --add safe.directory /www/wwwroot/ONE_FCM
+
             echo "Pulling latest code from main branch..."
             if [ ! -d ".git" ]; then
               echo "Git repository not found. Initializing..."
               git init
               git branch -m main
             fi
-            
+
             # Ensure remote origin exists and is correct
             git remote remove origin 2>/dev/null || true
             git remote add origin https://github.com/mobarokOP/OpenFCM.git
-            
+
             # Fetch the latest and reset to avoid merge conflicts
             git fetch origin main
             git reset --hard origin/main
-            
-            # =================================================================
-            # DEPLOYMENT SCRIPT
-            # The section below uses Docker since a production docker-compose 
-            # is provided. If you are NOT using Docker, uncomment the native 
-            # section below and remove the Docker section.
-            # =================================================================
-            
-            # --- DOCKER DEPLOYMENT (Commented Out) ---
-            # echo "Rebuilding containers and restarting services..."
-            # docker compose build
-            # docker compose up -d --remove-orphans
-            # 
-            # echo "Running database migrations..."
-            # docker compose exec -T app php artisan migrate --force
-            # 
-            # echo "Clearing and caching Laravel config..."
-            # docker compose exec -T app php artisan optimize:clear
-            
-            # --- NATIVE aaPanel DEPLOYMENT (Active) ---
+
+            # --- BACKEND (admin.onefcm.com -> backend/public) ---
             cd backend
             echo "Installing PHP dependencies..."
             composer install --no-dev --optimize-autoloader
-            
+
             echo "Running database migrations..."
             php artisan migrate --force
-            
+
             echo "Optimizing Laravel..."
             php artisan optimize:clear
             # Rebuild the config/route/view caches — without this every request
@@ -78,12 +60,16 @@ jobs:
             # Tell any running queue workers to reload the new code.
             php artisan queue:restart || true
             cd ..
-            
+
+            # --- DASHBOARD (dashboard.onefcm.com -> dashboard/dist) ---
             echo "Building Frontend..."
             cd dashboard
             npm install
-            echo "VITE_API_BASE=https://admin.beta.kathgolap.online/v1" > .env
+            echo "VITE_API_BASE=https://admin.onefcm.com/v1" > .env
             npm run build
             cd ..
-            
+
+            # --- LANDING (onefcm.com -> landing/) ---
+            # Static site; nothing to build. Served straight from landing/.
+
             echo "Deployment completed successfully!"
