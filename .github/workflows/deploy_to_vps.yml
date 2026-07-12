@@ -71,6 +71,9 @@ jobs:
             
             echo "Optimizing Laravel..."
             php artisan optimize:clear
+
+            # Tell any running queue workers to reload the new code.
+            php artisan queue:restart || true
             cd ..
             
             echo "Building Frontend..."
