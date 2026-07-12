@@ -15,12 +15,14 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { TableSkeleton } from '@/components/ui/Skeleton'
 import { Badge } from '@/components/ui/Badge'
 import { NoAppSelected } from '@/components/NoAppSelected'
+import { useConfirm } from '@/components/ui/ConfirmDialog'
 import { copyToClipboard, formatDate, fromNow } from '@/lib/utils'
 import type { ApiKey } from '@/types'
 
 export default function Keys() {
   const { appId, app, isLoading: appsLoading } = useCurrentApp()
   const qc = useQueryClient()
+  const confirmDialog = useConfirm()
   const [createOpen, setCreateOpen] = useState(false)
   const [name, setName] = useState('')
   const [newKey, setNewKey] = useState<ApiKey | null>(null)
@@ -85,8 +87,15 @@ export default function Keys() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => {
-            if (confirm(`Revoke "${k.name}"? Applications using it will stop working.`)) revoke.mutate(k.id)
+          onClick={async () => {
+            const ok = await confirmDialog({
+              title: `Revoke "${k.name}"?`,
+              description: 'Applications using this API key will stop working immediately.',
+              confirmLabel: 'Revoke',
+              tone: 'danger',
+              icon: 'shield',
+            })
+            if (ok) revoke.mutate(k.id)
           }}
         >
           <Trash2 className="h-4 w-4" /> Revoke

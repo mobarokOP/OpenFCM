@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/Badge'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { NoAppSelected } from '@/components/NoAppSelected'
+import { useConfirm } from '@/components/ui/ConfirmDialog'
 import { formatNumber } from '@/lib/utils'
 import type { Segment, SegmentFilter, SegmentOp } from '@/types'
 
@@ -30,6 +31,7 @@ const emptyFilter = (): SegmentFilter => ({ field: '', op: 'eq', value: '' })
 export default function Segments() {
   const { appId, isLoading: appsLoading } = useCurrentApp()
   const qc = useQueryClient()
+  const confirmDialog = useConfirm()
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<Segment | null>(null)
 
@@ -162,8 +164,15 @@ export default function Segments() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => {
-                      if (confirm(`Delete segment "${s.name}"?`)) remove.mutate(s.id)
+                    onClick={async () => {
+                      const ok = await confirmDialog({
+                        title: `Delete segment "${s.name}"?`,
+                        description: 'Notifications targeting this segment will no longer resolve it.',
+                        confirmLabel: 'Delete',
+                        tone: 'danger',
+                        icon: 'trash',
+                      })
+                      if (ok) remove.mutate(s.id)
                     }}
                   >
                     <Trash2 className="h-4 w-4" />

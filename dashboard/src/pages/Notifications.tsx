@@ -14,6 +14,7 @@ import { StatusBadge, Badge } from '@/components/ui/Badge'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { TableSkeleton } from '@/components/ui/Skeleton'
 import { NoAppSelected } from '@/components/NoAppSelected'
+import { useConfirm } from '@/components/ui/ConfirmDialog'
 import { Composer, type ComposerInitial } from './notifications/Composer'
 import { formatDateTime, formatNumber, formatPercent } from '@/lib/utils'
 import type { NotificationItem } from '@/types'
@@ -26,6 +27,7 @@ export default function Notifications() {
   const navigate = useNavigate()
   const location = useLocation()
   const qc = useQueryClient()
+  const confirmDialog = useConfirm()
 
   // Opened via "Duplicate" on a detail page: prefill the composer.
   useEffect(() => {
@@ -122,11 +124,16 @@ export default function Notifications() {
             title="Delete notification"
             className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-red-500/10 hover:text-red-500 disabled:opacity-50"
             disabled={remove.isPending}
-            onClick={(e) => {
+            onClick={async (e) => {
               e.stopPropagation()
-              if (window.confirm(`Delete "${n.title || 'Untitled'}"? Its delivery logs will be removed too.`)) {
-                remove.mutate(n.id)
-              }
+              const ok = await confirmDialog({
+                title: `Delete "${n.title || 'Untitled'}"?`,
+                description: 'This notification and its delivery logs will be permanently removed.',
+                confirmLabel: 'Delete',
+                tone: 'danger',
+                icon: 'trash',
+              })
+              if (ok) remove.mutate(n.id)
             }}
           >
             <Trash2 className="h-4 w-4" />

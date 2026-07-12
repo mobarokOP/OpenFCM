@@ -14,6 +14,7 @@ import { Select } from '@/components/ui/Select'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { Badge, StatusBadge } from '@/components/ui/Badge'
 import { ServiceAccountInput, parseServiceAccount } from '@/components/ServiceAccountInput'
+import { useConfirm } from '@/components/ui/ConfirmDialog'
 import { copyToClipboard, formatDate, formatDateTime } from '@/lib/utils'
 import type { Application } from '@/types'
 
@@ -75,6 +76,7 @@ export default function AppSettings() {
   const { id = '' } = useParams()
   const navigate = useNavigate()
   const qc = useQueryClient()
+  const confirmDialog = useConfirm()
   const [saRaw, setSaRaw] = useState('')
 
   const { data: app, isLoading } = useQuery({
@@ -254,8 +256,15 @@ export default function AppSettings() {
                 type="button"
                 variant="danger"
                 loading={remove.isPending}
-                onClick={() => {
-                  if (confirm(`Delete "${app.name}"? This cannot be undone.`)) remove.mutate()
+                onClick={async () => {
+                  const ok = await confirmDialog({
+                    title: `Delete "${app.name}"?`,
+                    description: 'All of its devices, users, notifications and logs will be permanently removed. This cannot be undone.',
+                    confirmLabel: 'Delete application',
+                    tone: 'danger',
+                    icon: 'trash',
+                  })
+                  if (ok) remove.mutate()
                 }}
               >
                 <Trash2 className="h-4 w-4" /> Delete application

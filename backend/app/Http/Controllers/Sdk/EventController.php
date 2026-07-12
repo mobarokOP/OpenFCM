@@ -34,8 +34,10 @@ class EventController extends Controller
             'occurred_at' => isset($data['occurred_at']) ? Carbon::parse($data['occurred_at']) : now(),
         ]);
 
-        // Roll up opens onto the notification counter.
-        if (in_array($data['type'], ['opened', 'clicked'], true) && ! empty($data['notification_id'])) {
+        // Roll up opens onto the notification counter. Only 'opened' counts —
+        // a tap fires both 'clicked' and 'opened', so counting both would
+        // double the CTR.
+        if ($data['type'] === 'opened' && ! empty($data['notification_id'])) {
             Notification::where('id', $data['notification_id'])
                 ->where('application_id', $app->id)
                 ->increment('opened_count');
