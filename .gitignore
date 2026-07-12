@@ -1,6 +1,30 @@
+# Backend (Laravel)
+backend/vendor/
+backend/node_modules/
+backend/.env
+backend/database/database.sqlite
+backend/openpush
+backend/.phpunit.result.cache
+composer
+composer.phar
+
+# Dashboard
+dashboard/node_modules/
+dashboard/dist/
+dashboard/.env.local
+
+# Android SDK (ignore build output only — keep source!)
+android-sdk/.gradle/
+android-sdk/build/
+android-sdk/**/build/
+android-sdk/local.properties
+android-sdk/**/google-services.json
+
+# Infra / secrets
+.env
+
+# OS / editor
 .DS_Store
+*.log
 .idea/
 .vscode/
-*.log
-composer
-android-sdk/

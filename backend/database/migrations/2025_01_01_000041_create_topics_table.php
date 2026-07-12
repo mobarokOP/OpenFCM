@@ -18,7 +18,7 @@ return new class extends Migration
         });
 
         Schema::create('topic_subscriptions', function (Blueprint $table) {
-            $table->uuid('id')->primary();
+            $table->id();
             $table->foreignUuid('topic_id')->constrained('topics')->cascadeOnDelete();
             $table->foreignUuid('device_id')->constrained('devices')->cascadeOnDelete();
             $table->timestamps();

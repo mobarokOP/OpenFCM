@@ -35,13 +35,18 @@ class NotifyAuth
             return $next($request);
         }
 
-        // Path 2: Dashboard admin (Sanctum)
-        $user = $request->user();
+        // Path 2: Dashboard admin (Sanctum) — resolve via the guard explicitly
+        // since this route group is not behind the auth:sanctum middleware.
+        $user = auth('sanctum')->user();
         if (! $user) {
             return $this->unauthorized();
         }
 
-        $appId = $request->input('app_id') ?? $request->route('appId');
+        $request->setUserResolver(fn () => $user);
+
+        $appId = $request->input('app_id')
+            ?? $request->route('appId')
+            ?? $request->header('X-OpenPush-App');
         $app = Application::where('id', $appId)
             ->where('account_id', $user->account_id)
             ->first();

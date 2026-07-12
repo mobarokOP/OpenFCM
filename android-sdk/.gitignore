@@ -1,0 +1,11 @@
+.gradle/
+build/
+*/build/
+local.properties
+.idea/
+.DS_Store
+captures/
+*.iml
+
+# Firebase config is per-project; provide your own (see README).
+sample/google-services.json

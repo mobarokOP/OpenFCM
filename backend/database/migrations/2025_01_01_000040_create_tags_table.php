@@ -18,7 +18,7 @@ return new class extends Migration
         });
 
         Schema::create('device_tags', function (Blueprint $table) {
-            $table->uuid('id')->primary();
+            $table->id();
             $table->foreignUuid('device_id')->constrained('devices')->cascadeOnDelete();
             $table->foreignUuid('tag_id')->constrained('tags')->cascadeOnDelete();
             $table->string('value')->nullable();
