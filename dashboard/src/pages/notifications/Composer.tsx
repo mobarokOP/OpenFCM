@@ -14,6 +14,7 @@ import { Select } from '@/components/ui/Select'
 import { Badge } from '@/components/ui/Badge'
 import { cn, formatNumber } from '@/lib/utils'
 import { DevicePreview } from './DevicePreview'
+import { DateTimePicker } from '@/components/ui/DateTimePicker'
 import type { AudienceType, CreateNotificationPayload } from '@/types'
 
 /** Prefill values, e.g. when duplicating an existing notification. */
@@ -277,14 +278,6 @@ export function Composer({ open, onClose, appId, initial }: ComposerProps) {
               <Input id="n-collapse" value={collapseKey} onChange={(e) => setCollapseKey(e.target.value)} placeholder="Optional grouping key" />
             </div>
           </div>
-        </div>
-
-        {/* Right: preview + audience + schedule */}
-        <div className="space-y-5 lg:col-span-2">
-          <div>
-            <Label>Preview</Label>
-            <DevicePreview title={title} body={body} imageUrl={imageUrl || undefined} />
-          </div>
 
           <div>
             <Label>Audience</Label>
@@ -370,12 +363,20 @@ export function Composer({ open, onClose, appId, initial }: ComposerProps) {
             </div>
             {scheduleMode === 'later' && (
               <div className="mt-2">
-                <Input type="datetime-local" value={sendAt} onChange={(e) => setSendAt(e.target.value)} />
+                <DateTimePicker value={sendAt} onChange={setSendAt} />
                 <p className="mt-1 text-[11px] text-muted-foreground">
                   Timezone: {Intl.DateTimeFormat().resolvedOptions().timeZone}
                 </p>
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Right: live device preview (sticky) */}
+        <div className="lg:col-span-2">
+          <div className="lg:sticky lg:top-0">
+            <Label>Preview</Label>
+            <DevicePreview title={title} body={body} imageUrl={imageUrl || undefined} />
           </div>
         </div>
       </div>
