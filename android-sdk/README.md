@@ -40,22 +40,32 @@ android-sdk/
 
 ## Installation
 
-### 1. Add the dependency
+### 1. Add the dependency (via JitPack)
 
-Once published to Maven, consumers add:
+Add the JitPack repository, then the SDK:
 
 ```kotlin
 // settings.gradle.kts
 dependencyResolutionManagement {
-    repositories { google(); mavenCentral() }
+    repositories {
+        google()
+        mavenCentral()
+        maven { url = uri("https://jitpack.io") } // <-- add this
+    }
 }
 
 // app/build.gradle.kts
 dependencies {
-    implementation("com.openpush:openpush-android:1.0.0")
+    implementation("com.github.mobarokOP.OpenFCM:openpush:1.0.0")
     // Firebase Messaging is exposed transitively (api) by the SDK.
 }
 ```
+
+> Replace `1.0.0` with any released git tag, a branch (`main-SNAPSHOT`), or a commit hash.
+> First resolution triggers a JitPack build — check status at
+> `https://jitpack.io/#mobarokOP/OpenFCM`.
+
+**Publishing a new version:** push a git tag to `mobarokOP/OpenFCM` (e.g. `git tag v1.0.0 && git push origin v1.0.0`) or create a GitHub Release. JitPack builds it on first request using the repo-root [`jitpack.yml`](../jitpack.yml).
 
 Or build the AAR locally:
 

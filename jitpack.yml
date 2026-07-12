@@ -1,0 +1,13 @@
+# JitPack build config. This is a monorepo (backend/ dashboard/ android-sdk/),
+# so JitPack cannot auto-detect the Gradle project at the repo root. We build the
+# Android library module explicitly and publish it to the local Maven repo, which
+# JitPack then serves.
+#
+# Consumers depend on it as:
+#   implementation("com.github.mobarokOP.OpenFCM:openpush:<tag>")
+#
+# $VERSION is the git tag/commit JitPack is building.
+jdk:
+  - openjdk17
+install:
+  - "cd android-sdk && chmod +x gradlew && ./gradlew :openpush:publishToMavenLocal -Pversion=$VERSION --no-daemon"

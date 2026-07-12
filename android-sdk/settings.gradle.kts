@@ -23,4 +23,9 @@ dependencyResolutionManagement {
 rootProject.name = "OpenPush"
 
 include(":openpush")
-include(":sample")
+
+// The sample app requires a real google-services.json and is only for local dev.
+// Skip it on JitPack (which sets VERSION) so publishing the library never needs it.
+if (System.getenv("VERSION") == null) {
+    include(":sample")
+}

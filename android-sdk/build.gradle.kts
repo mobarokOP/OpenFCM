@@ -7,5 +7,6 @@ plugins {
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.kotlin.compose) apply false
     alias(libs.plugins.google.services) apply false
-    alias(libs.plugins.maven.publish) apply false
+    // The library module uses Gradle's built-in `maven-publish` (JitPack-friendly);
+    // no third-party publish plugin required.
 }

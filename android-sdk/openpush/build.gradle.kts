@@ -2,8 +2,16 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.maven.publish)
+    `maven-publish`
 }
+
+// Published coordinates for JitPack: com.github.mobarokOP.OpenFCM:openpush:<tag>
+// Version is injected by JitPack via -Pversion / VERSION env; falls back for local builds.
+group = "com.github.mobarokOP.OpenFCM"
+version = (findProperty("version") as? String)
+    ?.takeUnless { it == "unspecified" }
+    ?: System.getenv("VERSION")
+    ?: "1.0.0"
 
 android {
     namespace = "com.openpush.sdk"
@@ -33,6 +41,13 @@ android {
 
     buildFeatures {
         buildConfig = true
+    }
+
+    // Expose a single publishable "release" component with sources.
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+        }
     }
 
     compileOptions {
@@ -73,4 +88,30 @@ dependencies {
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
+}
+
+publishing {
+    publications {
+        register<MavenPublication>("release") {
+            groupId = "com.github.mobarokOP.OpenFCM"
+            artifactId = "openpush"
+            version = project.version.toString()
+
+            afterEvaluate {
+                from(components["release"])
+            }
+
+            pom {
+                name.set("OpenPush Android SDK")
+                description.set("Android client SDK for the OpenPush notification platform (FCM).")
+                url.set("https://github.com/mobarokOP/OpenFCM")
+                licenses {
+                    license {
+                        name.set("MIT License")
+                        url.set("https://opensource.org/licenses/MIT")
+                    }
+                }
+            }
+        }
+    }
 }
