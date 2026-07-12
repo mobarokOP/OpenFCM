@@ -91,4 +91,4 @@ Every page: `<!doctype html><html lang="en">` … include in `<head>`:
 - Docs pages: `.docs-layout` grid + `.docs-side` (sticky sidebar, scroll-spy auto) + `.docs-body`, `.callout.info/.warn`
 
 ## Brand voice
-Product = **OneFCM** (display). Technical identifiers stay: `com.github.mobarokOP:OneFCM:3.0.1`, `com.openfcm.sdk`, `OpenFCM.init(...)` in code, repo URL. API base: `https://admin.onefcm.com` (+ `/v1`). Dashboard: `https://dashboard.onefcm.com`.
+Product = **OneFCM** (display). Technical identifiers stay: `com.github.mobarokOP:OneFCM:3.0.1`, `com.openfcm.sdk`, `OpenFCM.init(...)` in code, repo URL. API base: `https://api.onefcm.com` (+ `/v1`). Dashboard: `https://dashboard.onefcm.com`.

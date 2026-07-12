@@ -65,7 +65,7 @@ dependencyResolutionManagement {
 ```kotlin
 // app/build.gradle.kts
 dependencies {
-    implementation("com.github.mobarokOP:OneFCM:1.0.0")
+    implementation("com.github.mobarokOP:OneFCM:1.1.0")
     // Firebase Messaging is pulled in transitively — no extra FCM dependency needed.
 }
 ```
@@ -76,7 +76,7 @@ dependencies {
 
 ### Step 2 · Initialize the SDK
 
-Initialize once in your `Application` class. Point `baseUrl` at the OneFCM backend.
+Initialize once in your `Application` class — one line, just like OneSignal:
 
 ```kotlin
 // MyApp.kt
@@ -86,14 +86,19 @@ import com.openfcm.sdk.OpenFCM
 class MyApp : Application() {
     override fun onCreate() {
         super.onCreate()
-
-        OpenFCM.init(this, appId = "YOUR_APP_ID") {
-            baseUrl = "https://admin.onefcm.com" // your OpenFCM server
-            defaultChannelId = "general"
-            defaultChannelName = "General"
-            enableDebugLogging = BuildConfig.DEBUG
-        }
+        OpenFCM.init(this, appId = "YOUR_APP_ID")
     }
+}
+```
+
+Everything else is optional. Add the config block only to customize — or to point at a **self-hosted** OneFCM server:
+
+```kotlin
+OpenFCM.init(this, appId = "YOUR_APP_ID") {
+    baseUrl = "https://push.example.com" // self-hosted only; defaults to the OneFCM cloud
+    defaultChannelId = "general"
+    defaultChannelName = "General"
+    enableDebugLogging = BuildConfig.DEBUG
 }
 ```
 
@@ -165,7 +170,7 @@ Full SDK docs: **[android-sdk/README.md](android-sdk/README.md)**
 Create an API key in the dashboard (**App → API Keys**), then:
 
 ```bash
-curl -X POST https://admin.onefcm.com/v1/notifications \
+curl -X POST https://api.onefcm.com/v1/notifications \
   -H "Authorization: Bearer op_live_YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{

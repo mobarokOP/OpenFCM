@@ -262,13 +262,11 @@ main section{padding:96px 0}
           <button class="copy-btn">Copy</button>
 <pre><span class="tk-c">// One dependency — no google-services.json, no Firebase SDK</span>
 <span class="tk-k">dependencies</span> {
-    implementation(<span class="tk-s">"com.github.mobarokOP:OneFCM:1.0.0"</span>)
+    implementation(<span class="tk-s">"com.github.mobarokOP:OneFCM:1.1.0"</span>)
 }
 
 <span class="tk-c">// Application.onCreate() — the whole integration</span>
-<span class="tk-f">OpenFCM</span>.init(context, appId = <span class="tk-s">"YOUR_APP_ID"</span>) {
-    baseUrl = <span class="tk-s">"https://admin.onefcm.com"</span>
-}
+<span class="tk-f">OpenFCM</span>.init(context, appId = <span class="tk-s">"YOUR_APP_ID"</span>)
 
 <span class="tk-c">// Optional: identify &amp; target this device</span>
 <span class="tk-f">OpenFCM</span>.login(<span class="tk-s">"user_42"</span>)
@@ -281,7 +279,7 @@ main section{padding:96px 0}
           <div class="code-head"><div class="dots"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></div> send-notification.sh</div>
           <button class="copy-btn">Copy</button>
 <pre><span class="tk-c"># Send to every "pro" user — from any backend</span>
-curl -X <span class="tk-k">POST</span> https://admin.onefcm.com/v1/notifications \
+curl -X <span class="tk-k">POST</span> https://api.onefcm.com/v1/notifications \
   -H <span class="tk-s">"Authorization: Bearer $ONEFCM_API_KEY"</span> \
   -H <span class="tk-s">"Content-Type: application/json"</span> \
   -d <span class="tk-s">'{

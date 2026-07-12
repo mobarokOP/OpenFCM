@@ -60,7 +60,7 @@ dependencyResolutionManagement {
 
 // app/build.gradle.kts
 dependencies {
-    implementation("com.github.mobarokOP:OneFCM:1.0.0")
+    implementation("com.github.mobarokOP:OneFCM:1.1.0")
     // Firebase Messaging is exposed transitively (api) by the SDK.
 }
 ```
@@ -118,20 +118,27 @@ class MyApp : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        OpenFCM.init(this, "YOUR_APP_ID") {
-            baseUrl = "https://push.example.com"  // your backend
-            enableDebugLogging = BuildConfig.DEBUG
-            defaultChannelId = "general"
-            defaultChannelName = "General"
-            // smallIconResId = R.drawable.ic_stat_push
-            // accentColor = Color.parseColor("#6200EE")
-        }
+        OpenFCM.init(this, "YOUR_APP_ID")
 
         OpenFCM.setNotificationOpenHandler { payload ->
             // Route the deep link / update UI.
             startActivity(deepLinkIntent(payload.deepLink))
         }
     }
+}
+```
+
+That's the whole setup for the OneFCM cloud. The config block is optional —
+use it to customize, or to point at a self-hosted server:
+
+```kotlin
+OpenFCM.init(this, "YOUR_APP_ID") {
+    baseUrl = "https://push.example.com"  // self-hosted only; defaults to the OneFCM cloud
+    enableDebugLogging = BuildConfig.DEBUG
+    defaultChannelId = "general"
+    defaultChannelName = "General"
+    // smallIconResId = R.drawable.ic_stat_push
+    // accentColor = Color.parseColor("#6200EE")
 }
 ```
 

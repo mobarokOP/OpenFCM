@@ -158,14 +158,19 @@
 <span class="tk-k">class</span> MyApp : Application() {
     <span class="tk-k">override fun</span> <span class="tk-f">onCreate</span>() {
         <span class="tk-k">super</span>.onCreate()
-
-        OpenFCM.<span class="tk-f">init</span>(<span class="tk-k">this</span>, appId = <span class="tk-s">"YOUR_APP_ID"</span>) {
-            baseUrl = <span class="tk-s">"https://admin.onefcm.com"</span>
-            defaultChannelId = <span class="tk-s">"general"</span>
-            defaultChannelName = <span class="tk-s">"General"</span>
-            enableDebugLogging = BuildConfig.DEBUG
-        }
+        OpenFCM.<span class="tk-f">init</span>(<span class="tk-k">this</span>, appId = <span class="tk-s">"YOUR_APP_ID"</span>)
     }
+}</pre>
+        </div>
+        <p>One line is all it takes — the SDK talks to the OneFCM cloud by default. An optional config block customizes channels, icons and logging, or points the SDK at a <strong style="color:var(--text)">self-hosted</strong> server:</p>
+        <div class="code">
+          <div class="code-head"><div class="dots"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></div> MyApp.kt · optional config</div>
+          <button class="copy-btn">Copy</button>
+          <pre>OpenFCM.<span class="tk-f">init</span>(<span class="tk-k">this</span>, appId = <span class="tk-s">"YOUR_APP_ID"</span>) {
+    baseUrl = <span class="tk-s">"https://push.example.com"</span> <span class="tk-c">// self-hosted only</span>
+    defaultChannelId = <span class="tk-s">"general"</span>
+    defaultChannelName = <span class="tk-s">"General"</span>
+    enableDebugLogging = BuildConfig.DEBUG
 }</pre>
         </div>
         <p>Register the class in your manifest:</p>
@@ -191,7 +196,6 @@
           <button class="copy-btn">Copy</button>
           <pre><span class="tk-c">// 1 · Opt out of the automatic prompt in init { }</span>
 OpenFCM.<span class="tk-f">init</span>(<span class="tk-k">this</span>, appId = <span class="tk-s">"YOUR_APP_ID"</span>) {
-    baseUrl = <span class="tk-s">"https://admin.onefcm.com"</span>
     promptForPermissionOnInit = <span class="tk-k">false</span>
 }
 
@@ -265,8 +269,8 @@ OpenFCM.<span class="tk-f">unsubscribeTopic</span>(<span class="tk-s">"announcem
           <tbody>
             <tr>
               <td>Device not registering</td>
-              <td>App ID and <code>baseUrl</code> in <code>OpenFCM.init</code>; Logcat filtered by <code>OpenFCM</code> (with <code>enableDebugLogging = true</code>).</td>
-              <td>Use the exact App ID from the dashboard and an HTTPS <code>baseUrl</code> reachable from the device; the Logcat lines name the failing request.</td>
+              <td>App ID in <code>OpenFCM.init</code> (and <code>baseUrl</code>, if self-hosting); Logcat filtered by <code>OpenFCM</code> (with <code>enableDebugLogging = true</code>).</td>
+              <td>Use the exact App ID from the dashboard; if self-hosting, the <code>baseUrl</code> must be an HTTPS URL reachable from the device. The Logcat lines name the failing request.</td>
             </tr>
             <tr>
               <td>Notification not arriving</td>
@@ -290,11 +294,11 @@ OpenFCM.<span class="tk-f">unsubscribeTopic</span>(<span class="tk-s">"announcem
       <section id="rest-api">
         <h2>REST API — Authentication</h2>
         <p>Send server-to-server with an API key. In the dashboard open <strong style="color:var(--text)">your app → API Keys → New key</strong>. The full key (<code>op_live_…</code>) is <strong style="color:var(--text)">shown once</strong> — store it in a secret manager. Keys belong to one application and can be revoked any time.</p>
-        <p>Base URL: <code>https://admin.onefcm.com/v1</code> · Content type: <code>application/json</code> · Auth header on every request:</p>
+        <p>Base URL: <code>https://api.onefcm.com/v1</code> · Content type: <code>application/json</code> · Auth header on every request:</p>
         <div class="code">
           <div class="code-head"><div class="dots"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></div> auth.sh</div>
           <button class="copy-btn">Copy</button>
-          <pre>curl https://admin.onefcm.com/v1/notifications/NOTIFICATION_ID \
+          <pre>curl https://api.onefcm.com/v1/notifications/NOTIFICATION_ID \
   -H <span class="tk-s">"Authorization: Bearer op_live_YOUR_API_KEY"</span></pre>
         </div>
         <p>All timestamps are ISO-8601 UTC; IDs are UUID strings. Errors use one shape — see <a href="#error-codes" style="color:var(--brand)">Error codes</a>.</p>
@@ -307,7 +311,7 @@ OpenFCM.<span class="tk-f">unsubscribeTopic</span>(<span class="tk-s">"announcem
         <div class="code">
           <div class="code-head"><div class="dots"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></div> send.sh</div>
           <button class="copy-btn">Copy</button>
-          <pre>curl -X POST https://admin.onefcm.com/v1/notifications \
+          <pre>curl -X POST https://api.onefcm.com/v1/notifications \
   -H <span class="tk-s">"Authorization: Bearer op_live_YOUR_API_KEY"</span> \
   -H <span class="tk-s">"Content-Type: application/json"</span> \
   -d <span class="tk-s">'{
@@ -385,7 +389,7 @@ OpenFCM.<span class="tk-f">unsubscribeTopic</span>(<span class="tk-s">"announcem
         <div class="code">
           <div class="code-head"><div class="dots"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></div> status.sh</div>
           <button class="copy-btn">Copy</button>
-          <pre>curl https://admin.onefcm.com/v1/notifications/7c9e6679-7425-40de-944b-e07fc1f90ae7 \
+          <pre>curl https://api.onefcm.com/v1/notifications/7c9e6679-7425-40de-944b-e07fc1f90ae7 \
   -H <span class="tk-s">"Authorization: Bearer op_live_YOUR_API_KEY"</span></pre>
         </div>
         <div class="code">
@@ -436,7 +440,7 @@ OpenFCM.<span class="tk-f">unsubscribeTopic</span>(<span class="tk-s">"announcem
         <table>
           <thead><tr><th>Option</th><th>Purpose</th></tr></thead>
           <tbody>
-            <tr><td><code>baseUrl</code></td><td>Your OneFCM server, e.g. <code>https://admin.onefcm.com</code>.</td></tr>
+            <tr><td><code>baseUrl</code></td><td>Self-hosted servers only — defaults to the OneFCM cloud when unset.</td></tr>
             <tr><td><code>defaultChannelId</code> / <code>defaultChannelName</code></td><td>Notification channel used when a send doesn't specify one.</td></tr>
             <tr><td><code>smallIconResId</code></td><td>Status-bar icon resource.</td></tr>
             <tr><td><code>accentColor</code></td><td>Notification accent color.</td></tr>

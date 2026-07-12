@@ -1,12 +1,18 @@
 package com.openfcm.sdk
 
 /**
- * Optional configuration for [OpenFCM.init]. Use the DSL builder for the common
- * cases; every field has a sensible default.
+ * Optional configuration for [OpenFCM.init]. Every field has a sensible
+ * default, so most apps need no config at all:
+ *
+ * ```kotlin
+ * OpenFCM.init(context, appId)
+ * ```
+ *
+ * Use the DSL builder to customize — e.g. when pointing at a self-hosted server:
  *
  * ```kotlin
  * OpenFCM.init(context, appId) {
- *     baseUrl = "https://push.example.com"
+ *     baseUrl = "https://push.example.com" // self-hosted only
  *     enableDebugLogging = true
  *     defaultChannelId = "marketing"
  * }
@@ -25,7 +31,10 @@ class OpenFCMConfig private constructor(
 ) {
 
     class Builder {
-        /** Overrides the backend base URL (default: BuildConfig.OPENFCM_DEFAULT_BASE_URL). */
+        /**
+         * Backend base URL. Leave unset to use the OneFCM cloud
+         * (https://api.onefcm.com); set it only for self-hosted servers.
+         */
         var baseUrl: String? = null
 
         /** Enables verbose logging and OkHttp body logging. Keep false in release. */

@@ -11,7 +11,7 @@ group = "com.github.mobarokOP.OneFCM"
 version = (findProperty("version") as? String)
     ?.takeUnless { it == "unspecified" }
     ?: System.getenv("VERSION")
-    ?: "1.0.0"
+    ?: "1.1.0"
 
 android {
     namespace = "com.openfcm.sdk"
@@ -20,10 +20,11 @@ android {
     defaultConfig {
         minSdk = 24
 
-        // The default backend base URL. Consumers can override at runtime via
-        // OpenFCM.init(...) or by supplying a manifest meta-data entry.
-        buildConfigField("String", "OPENFCM_DEFAULT_BASE_URL", "\"http://localhost:8000\"")
-        buildConfigField("String", "OPENFCM_SDK_VERSION", "\"1.0.0\"")
+        // The OneFCM cloud endpoint, baked in so `OpenFCM.init(context, appId)`
+        // works with no further config. Self-hosted servers override it at
+        // runtime via `baseUrl` in OpenFCM.init(...).
+        buildConfigField("String", "OPENFCM_DEFAULT_BASE_URL", "\"https://api.onefcm.com\"")
+        buildConfigField("String", "OPENFCM_SDK_VERSION", "\"1.1.0\"")
 
         consumerProguardFiles("consumer-rules.pro")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
